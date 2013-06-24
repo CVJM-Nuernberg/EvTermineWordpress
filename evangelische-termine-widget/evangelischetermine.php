@@ -70,7 +70,7 @@ class EvTermine_Widget extends WP_Widget {
     if ( !empty($title) )
       echo $args['before_title'] . $title . $args['after_title'];
 
-    $this->doOutput(array('reqstr' => 'vid=3'));
+    $this->doOutput($instance);
 
     echo $args['after_widget'];
   }
@@ -121,19 +121,15 @@ class EvTermine_Widget extends WP_Widget {
    */
   private function getTermine( $args ) {
     $xmlresp = '';
-    if ( !empty( $args[ 'url' ]) )
-    {
-      $geturl = $args[ 'url ' ];
-    }
-    else
-    {
+    if ( !empty( $args[ 'url' ]) ) {
+      $geturl = $args[ 'url' ];
+    } else {
       $geturl = 'www.evangelische-termine.de/Veranstalter/xml.php';
     }
 
     if (!empty( $args[ 'reqstr' ] )) {
       $geturl .= '?' . $args[ 'reqstr' ];
     }
-    echo '<p>geturl: ' . $geturl . '</p>';
 
     if(function_exists('curl_init')) {
       /* If URL begins with 'http://' strip it off as cURL does not want that */
@@ -159,18 +155,18 @@ class EvTermine_Widget extends WP_Widget {
     return $xmlresp;
   }
 
-  private function outputTermine( $xmlstr ) {
+  private function outputTermine( $xmlstr, $args ) {
     if (function_exists('simplexml_load_string')) {
       $xmlobj = new SimpleXMLElement($xmlstr);
       foreach($xmlobj->Export->Veranstaltung as $event) {
-        echo '<p>'. $event->DATUM . ' am ' . $event->_event_TITLE . '</p>';
+        echo '<p class="evtermine_container"><span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;<span class="evtermine_title">' . $event->_event_TITLE . '</span></p>';
       }
     }
   }
 
   private function doOutput($args) {
     $xmlstr = $this->getTermine($args);
-    $this->outputTermine($xmlstr);
+    $this->outputTermine($xmlstr, $args);
   }
 }
 
