@@ -159,7 +159,19 @@ class EvTermine_Widget extends WP_Widget {
     if (function_exists('simplexml_load_string')) {
       $xmlobj = new SimpleXMLElement($xmlstr);
       foreach($xmlobj->Export->Veranstaltung as $event) {
-        echo '<p class="evtermine_container"><span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;<span class="evtermine_title">' . $event->_event_TITLE . '</span></p>';
+        echo '<p class="evtermine_container">' . "\n";
+        echo '<span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;&nbsp;' . "\n";
+        echo '<span class="evtermine_title">' . $event->_event_TITLE . '</span><br>' . "\n";
+        echo '<span class="evtermine_desc">';
+        /* If there is no short description */
+        if (strlen($event->_event_SHORT_DESCRIPTION) > 0)
+        {
+          echo $event->_event_SHORT_DESCRIPTION . ', &nbsp;';
+        } else if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
+          echo $event->_event_LONG_DESCRIPTION . ', &nbsp;';
+        }
+        echo $event->_place_NAME . ', ' . $event->_place_STREET_NR;
+        echo '</span></p>' . "\n";
       }
     }
   }
