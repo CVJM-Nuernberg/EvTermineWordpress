@@ -156,23 +156,50 @@ class EvTermine_Widget extends WP_Widget {
   }
 
   private function outputTermine( $xmlstr, $args ) {
-    if (function_exists('simplexml_load_string')) {
+    if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
       $xmlobj = new SimpleXMLElement($xmlstr);
       foreach($xmlobj->Export->Veranstaltung as $event) {
         echo '<p class="evtermine_container">' . "\n";
         echo '<span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;&nbsp;' . "\n";
-        echo '<span class="evtermine_title">' . $event->_event_TITLE . '</span><br>' . "\n";
+        echo '<a class="evtermine_title" href="#" rel="#ev_' . $event->_event_ID . '">' . $event->_event_TITLE . '</a><br>' . "\n";
         echo '<span class="evtermine_desc">';
         /* If there is no short description */
+        $address = $event->_place_NAME . ', ' . $event->_place_STREET_NR;
+        $addrlen = strlen($address);
         if (strlen($event->_event_SHORT_DESCRIPTION) > 0)
         {
-          echo $event->_event_SHORT_DESCRIPTION . ', &nbsp;';
+          $desc = $event->_event_SHORT_DESCRIPTION;
         } else if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
-          echo $event->_event_LONG_DESCRIPTION . ', &nbsp;';
+          $desc = $event->_event_LONG_DESCRIPTION;
         }
-        echo $event->_place_NAME . ', ' . $event->_place_STREET_NR;
+        $desclen = strlen($desc);
+        $maxlen = 120;
+        if (($addrlen + $desclen) > $maxlen)
+        {
+          $desc = substr($desc, 0, $maxlen - $addrlen);
+          $desccut = strrpos($desc, ' ');
+          if ($desccut > 0)
+          {
+            $desc = substr($desc, 0, $desccut);
+          }
+          $desc .= '...';
+        }
+        echo $desc . ', &nbsp;' . $address;
         echo '</span></p>' . "\n";
+
+        echo '<div class="simple_overlay" id="ev_' . $event->_event_ID . '">' . "\n";
+        echo '<h2>' . $event->_event_TITLE . '</h2>' . "\n";
+        echo '<p>' . $event->DATUM . '</p>' . "\n";
+        if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
+          echo '<p>' . $event->_event_LONG_DESCRIPTION . '</p>' . "\n";
+        } else {
+          echo '<p>' . $event->_event_SHORT_DESCRIPTION . '</p>' . "\n";
+        }
+        echo '<p>' . $address . '</p>' . "\n";
+        echo '</div>' . "\n";
       }
+    } else {
+      echo '<p>Keine Termine</p>\n';
     }
   }
 
