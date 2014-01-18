@@ -191,7 +191,7 @@ class EvTermine_Widget extends WP_Widget {
         echo '<h2>' . $event->_event_TITLE . '</h2>' . "\n";
         echo '<p>' . $event->DATUM . '</p>' . "\n";
         if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
-          echo '<p>' . $event->_event_LONG_DESCRIPTION . '</p>' . "\n";
+          echo '<p class="preformatted">' . $event->_event_LONG_DESCRIPTION . '</p>' . "\n";
         } else {
           echo '<p>' . $event->_event_SHORT_DESCRIPTION . '</p>' . "\n";
         }
