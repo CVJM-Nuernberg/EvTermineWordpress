@@ -163,35 +163,61 @@ class EvTermine_Widget extends WP_Widget {
     return $xmlresp;
   }
   
+  private function parse_xml_args( $queryString )
+  {
+    $result = array();
+    $entries = preg_split('/\|/', $queryString);
+	foreach ($entries as $entry) {
+	  list($key,$value) = preg_split('/=/', $entry);
+	  $result[$key] = $value;
+	}
+	
+	return $result;
+  }
+  
   private function getItemsPerPage( $queryString )
   {
     $itemsperpage = 1;
-    $paramstr = strstr($queryString, 'itemsPerPage');
-	if (strlen($paramstr) > 13)
-	{ 
-	  $pos = strpos($paramstr, '=');
-	  if ($pos > 0)
-	  { 
-	    $itemsperpage = intval(substr($paramstr, $pos + 1));
-		if ($itemsperpage == 0)
-		{
-		  $itemsperpage = 1;
-		}
+	$arg_array = $this->parse_xml_args( $queryString );
+	if (array_key_exists('itemsPerPage', $arg_array)) {
+	  $itemsperpage = intval($arg_array['itemsPerPage']);
+	  if ($itemsperpage == 0)
+	  {
+		$itemsperpage = 1;
 	  }
 	}
 	
 	return $itemsperpage;
   }
   
-  private function outputNavigation( $maxentries, $itemsperpage )
+  private function outputNavigation( $queryString, $maxentries, $itemsperpage )
   {
 	echo '<div class="event_navigation">' . "\n";
-	if (!get_query_var('evterm_pageid')) {
-	  $page = 1;
-	} else {
-	  $page = get_query_var('evterm_pageid');
-    }
+    $arg_array = $this->parse_xml_args( $queryString );
+	$page = 1;
+	if (array_key_exists('pageID', $arg_array)) {
+	  $page = intval($arg_array['pageID']);
+	  if ($page == 0)
+	  {
+		$page = 1;
+	  }
+	}
 	$maxpage = ceil($maxentries / $itemsperpage);
+	
+	if (array_key_exists('vid', $arg_array)) {
+	  $vid = $arg_array['vid'];
+	}
+	
+	$newArgs = '';
+	foreach ($arg_array as $key => $value) {
+	  if (strcmp($key, 'pageID') != 0) {
+	    if (strlen($newArgs) != 0)
+        {
+	     $newArgs .= "&";
+		}
+		$newArgs .= $key . "=" . $value;
+	  }
+	}
 
 	$nextpage = $page + 3;
 	if ($nextpage > $maxpage) {
@@ -204,26 +230,32 @@ class EvTermine_Widget extends WP_Widget {
 	  $prevpage = 1;
 	}
 	
-	echo '<a href="';
-    echo home_url(add_query_arg('evterm_pageid' , 1));
-	echo '"><img src="' . plugins_url('images/gostart_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;<a href="';
-	echo home_url(add_query_arg('evterm_pageid' , $prevpage));
-	echo '"><img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;';
+	if (strlen($newArgs) != 0) {
+	  $newArgs .= '&';
+    }
+
+	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="yes">' . "\n";
+	echo '<img src="' . plugins_url('images/gostart_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
+	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" data-filter="yes">' . "\n";
+	echo '<img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
 	  if ($actpage != $page)
 	  {
-	    echo '<a href="';
-        echo home_url(add_query_arg('evterm_pageid' , $actpage));
-	    echo '">' . $actpage . '</a>&nbsp;&nbsp;';
+	    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+       echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $actpage . '" data-filter="yes">' . "\n";
+	    echo $actpage . '</a>&nbsp;&nbsp;' . "\n";
 	  } else {
-	    echo $actpage . '&nbsp;&nbsp;';
+	    echo $actpage . '&nbsp;&nbsp;' . "\n";
 	  }
 	}
-    echo '<a href="';
-    echo home_url(add_query_arg('evterm_pageid' , $nextpage));
-	echo '"><img src="' . plugins_url('images/ff_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;<a href="';
-	echo home_url(add_query_arg('evterm_pageid' , $maxpage));
-	echo '"><img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n";
+    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $nextpage . '" data-filter="yes">' . "\n";
+	echo '<img src="' . plugins_url('images/ff_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
+	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $maxpage . '" data-filter="yes">' . "\n";
+	echo '<img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n" . "\n";
 	echo '</div>' . "\n";
   }
 
@@ -276,7 +308,7 @@ class EvTermine_Widget extends WP_Widget {
       echo '<p>Keine Termine</p>\n';
     }
 	$itemsperpage = $this->getItemsPerPage( $xmlobj->Export->meta->activeParams );
-	$this->outputNavigation( $xmlobj->Export->meta->totalItems, $itemsperpage );
+	$this->outputNavigation( $xmlobj->Export->meta->activeParams, $xmlobj->Export->meta->totalItems, $itemsperpage );
   }
 
   private function doOutput($args) {
