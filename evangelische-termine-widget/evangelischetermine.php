@@ -126,6 +126,14 @@ class EvTermine_Widget extends WP_Widget {
     } else {
       $geturl = 'www.evangelische-termine.de/Veranstalter/xml.php';
     }
+	
+	if (get_query_var('evterm_pageid')) {
+	  if (!empty( $args[ 'reqstr' ] )) {
+	    $args[ 'reqstr' ] .= '&pageID=' . get_query_var('evterm_pageid');
+	  } else {
+	    $args[ 'reqstr' ] = 'pageID=' . get_query_var('evterm_pageid');
+	  }
+    }
 
     if (!empty( $args[ 'reqstr' ] )) {
       $geturl .= '?' . $args[ 'reqstr' ];
@@ -154,6 +162,70 @@ class EvTermine_Widget extends WP_Widget {
 
     return $xmlresp;
   }
+  
+  private function getItemsPerPage( $queryString )
+  {
+    $itemsperpage = 1;
+    $paramstr = strstr($queryString, 'itemsPerPage');
+	if (strlen($paramstr) > 13)
+	{ 
+	  $pos = strpos($paramstr, '=');
+	  if ($pos > 0)
+	  { 
+	    $itemsperpage = intval(substr($paramstr, $pos + 1));
+		if ($itemsperpage == 0)
+		{
+		  $itemsperpage = 1;
+		}
+	  }
+	}
+	
+	return $itemsperpage;
+  }
+  
+  private function outputNavigation( $maxentries, $itemsperpage )
+  {
+	echo '<div class="event_navigation">' . "\n";
+	if (!get_query_var('evterm_pageid')) {
+	  $page = 1;
+	} else {
+	  $page = get_query_var('evterm_pageid');
+    }
+	$maxpage = ceil($maxentries / $itemsperpage);
+
+	$nextpage = $page + 3;
+	if ($nextpage > $maxpage) {
+	  $nextpage = $maxpage;
+	}
+	
+	$prevpage = $page - 3;
+	if ($prevpage < 1)
+	{
+	  $prevpage = 1;
+	}
+	
+	echo '<a href="';
+    echo home_url(add_query_arg('evterm_pageid' , 1));
+	echo '"><img src="' . plugins_url('images/gostart_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;<a href="';
+	echo home_url(add_query_arg('evterm_pageid' , $prevpage));
+	echo '"><img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;';
+	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
+	  if ($actpage != $page)
+	  {
+	    echo '<a href="';
+        echo home_url(add_query_arg('evterm_pageid' , $actpage));
+	    echo '">' . $actpage . '</a>&nbsp;&nbsp;';
+	  } else {
+	    echo $actpage . '&nbsp;&nbsp;';
+	  }
+	}
+    echo '<a href="';
+    echo home_url(add_query_arg('evterm_pageid' , $nextpage));
+	echo '"><img src="' . plugins_url('images/ff_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;<a href="';
+	echo home_url(add_query_arg('evterm_pageid' , $maxpage));
+	echo '"><img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n";
+	echo '</div>' . "\n";
+  }
 
   private function outputTermine( $xmlstr, $args ) {
     if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
@@ -171,7 +243,9 @@ class EvTermine_Widget extends WP_Widget {
           $desc = $event->_event_SHORT_DESCRIPTION;
         } else if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
           $desc = $event->_event_LONG_DESCRIPTION;
-        }
+        } else {
+		  $desc = 'Keine weiteren Informationen.';
+		}
         $desclen = strlen($desc);
         $maxlen = 120;
         if (($addrlen + $desclen) > $maxlen)
@@ -201,6 +275,8 @@ class EvTermine_Widget extends WP_Widget {
     } else {
       echo '<p>Keine Termine</p>\n';
     }
+	$itemsperpage = $this->getItemsPerPage( $xmlobj->Export->meta->activeParams );
+	$this->outputNavigation( $xmlobj->Export->meta->totalItems, $itemsperpage );
   }
 
   private function doOutput($args) {
