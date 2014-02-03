@@ -190,7 +190,31 @@ class EvTermine_Widget extends WP_Widget {
 	return $itemsperpage;
   }
   
-  private function outputNavigation( $queryString, $maxentries, $itemsperpage )
+  private function tohtml( $str ) {
+    // get rid of existing entities else double-escape
+    $str2 = '';
+    $str = html_entity_decode(stripslashes($str),ENT_QUOTES,'UTF-8');
+    $ar = preg_split('/(?<!^)(?!$)/u', $str );  // return array of every multi-byte character
+    foreach ($ar as $c){
+        $o = ord($c);
+        if ( (strlen($c) > 1) || /* multi-byte [unicode] */
+            ($o <32 || $o > 126) || /* <- control / latin weirdos -> */
+            ($o >33 && $o < 40) ||/* quotes + ambersand */
+            ($o >59 && $o < 63) /* html */
+        ) {
+            if ($o == 10) {
+              $c = '<br />';
+            } else if ($o != 13) {
+              // convert to numeric entity
+              $c = mb_encode_numericentity($c,array (0x0, 0xffff, 0, 0xffff), 'UTF-8');
+            }
+        }
+        $str2 .= $c;
+    }
+    return $str2;
+  }
+  
+  private function outputNavigation( $args, $queryString, $maxentries, $itemsperpage )
   {
 	echo '<div class="event_navigation">' . "\n";
     $arg_array = $this->parse_xml_args( $queryString );
@@ -206,6 +230,12 @@ class EvTermine_Widget extends WP_Widget {
 	
 	if (array_key_exists('vid', $arg_array)) {
 	  $vid = $arg_array['vid'];
+	}
+	
+	if (array_key_exists('filter', $args)) {
+	  $filter = $args['filter'];
+	} else {
+	  $filter = 'no';
 	}
 	
 	$newArgs = '';
@@ -265,7 +295,7 @@ class EvTermine_Widget extends WP_Widget {
       foreach($xmlobj->Export->Veranstaltung as $event) {
         echo '<p class="evtermine_container">' . "\n";
         echo '<span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;&nbsp;' . "\n";
-        echo '<a class="evtermine_title" href="#" rel="#ev_' . $event->_event_ID . '">' . $event->_event_TITLE . '</a><br>' . "\n";
+        echo '<a class="evtermine_title" href="http://evangelische-termine.de/detail.php?ID=' . $event->ID . '" rel="#ev_' . $event->_event_ID . '">' . $this->tohtml($event->_event_TITLE) . '</a><br>' . "\n";
         echo '<span class="evtermine_desc">';
         /* If there is no short description */
         $address = $event->_place_NAME . ', ' . $event->_place_STREET_NR;
@@ -290,16 +320,16 @@ class EvTermine_Widget extends WP_Widget {
           }
           $desc .= '...';
         }
-        echo $desc . ', &nbsp;' . $address;
+        echo $this->tohtml($desc) . ', &nbsp;' . $address;
         echo '</span></p>' . "\n";
 
         echo '<div class="simple_overlay" id="ev_' . $event->_event_ID . '">' . "\n";
-        echo '<h2>' . $event->_event_TITLE . '</h2>' . "\n";
-        echo '<p>' . $event->DATUM . '</p>' . "\n";
+        echo '<h2>' . $this->tohtml($event->_event_TITLE) . '</h2>' . "\n";
+        echo '<h3>' . $event->DATUM . '</h3>' . "\n";
         if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
-          echo '<p class="preformatted">' . $event->_event_LONG_DESCRIPTION . '</p>' . "\n";
+          echo '<p>' . $this->tohtml($event->_event_LONG_DESCRIPTION) . '</p>' . "\n";
         } else {
-          echo '<p>' . $event->_event_SHORT_DESCRIPTION . '</p>' . "\n";
+          echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
         }
         echo '<p>' . $address . '</p>' . "\n";
         echo '</div>' . "\n";
@@ -308,7 +338,7 @@ class EvTermine_Widget extends WP_Widget {
       echo '<p>Keine Termine</p>\n';
     }
 	$itemsperpage = $this->getItemsPerPage( $xmlobj->Export->meta->activeParams );
-	$this->outputNavigation( $xmlobj->Export->meta->activeParams, $xmlobj->Export->meta->totalItems, $itemsperpage );
+	$this->outputNavigation( $args, $xmlobj->Export->meta->activeParams, $xmlobj->Export->meta->totalItems, $itemsperpage );
   }
 
   private function doOutput($args) {
