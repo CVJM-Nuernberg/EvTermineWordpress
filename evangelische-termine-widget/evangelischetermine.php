@@ -117,7 +117,7 @@ class EvTermine_Widget extends WP_Widget {
   }
 
   /**
-   * Get the XML string from the Evangilische Termine webpage
+   * Get the XML string from the Evangelische Termine webpage
    */
   private function getTermine( $args ) {
     $xmlresp = '';
@@ -265,26 +265,26 @@ class EvTermine_Widget extends WP_Widget {
     }
 
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="yes">' . "\n";
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="' . $filter . '">' . "\n";
 	echo '<img src="' . plugins_url('images/gostart_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" data-filter="yes">' . "\n";
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" data-filter="' . $filter . '">' . "\n";
 	echo '<img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
 	  if ($actpage != $page)
 	  {
 	    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-       echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $actpage . '" data-filter="yes">' . "\n";
+       echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $actpage . '" data-filter="' . $filter . '">' . "\n";
 	    echo $actpage . '</a>&nbsp;&nbsp;' . "\n";
 	  } else {
 	    echo $actpage . '&nbsp;&nbsp;' . "\n";
 	  }
 	}
     echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $nextpage . '" data-filter="yes">' . "\n";
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $nextpage . '" data-filter="' . $filter . '">' . "\n";
 	echo '<img src="' . plugins_url('images/ff_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $maxpage . '" data-filter="yes">' . "\n";
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $maxpage . '" data-filter="' . $filter . '">' . "\n";
 	echo '<img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n" . "\n";
 	echo '</div>' . "\n";
   }
