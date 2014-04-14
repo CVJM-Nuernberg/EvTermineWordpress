@@ -221,12 +221,17 @@ class EvTermine_Widget extends WP_Widget {
 	$page = 1;
 	if (array_key_exists('pageID', $arg_array)) {
 	  $page = intval($arg_array['pageID']);
-	  if ($page == 0)
-	  {
-		$page = 1;
+	  if ($page == 0) {
+		  $page = 1;
 	  }
 	}
 	$maxpage = ceil($maxentries / $itemsperpage);
+  
+  if (array_key_exists('highlight', $arg_array)) {
+    $is_highlight = true;
+  } else {
+    $is_highlight = false;
+  }
 	
 	if (array_key_exists('vid', $arg_array)) {
 	  $vid = $arg_array['vid'];
@@ -240,12 +245,12 @@ class EvTermine_Widget extends WP_Widget {
 	
 	$newArgs = '';
 	foreach ($arg_array as $key => $value) {
-	  if (strcmp($key, 'pageID') != 0) {
+	  if (strcmp($key, 'pageID') != 0 && strcmp($key, 'highlight')) {
 	    if (strlen($newArgs) != 0)
-        {
-	     $newArgs .= "&";
-		}
-		$newArgs .= $key . "=" . $value;
+      {
+	      $newArgs .= "&";
+		  }
+		  $newArgs .= $key . "=" . $value;
 	  }
 	}
 
@@ -263,6 +268,27 @@ class EvTermine_Widget extends WP_Widget {
 	if (strlen($newArgs) != 0) {
 	  $newArgs .= '&';
     }
+    
+  // Output the filter options
+  if ($is_highlight == false) {
+    $newArgs .= 'highlight=high&';
+  }
+  echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+  echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $page . '" data-filter="' . $filter . '">' . "\n";
+	echo '<img src="';
+  if ($is_highlight == true) {
+    echo plugins_url('images/highlight_on.png', __FILE__);
+  } else {
+    echo plugins_url('images/highlight_off.png', __FILE__);
+  }
+  echo '" title="';
+  if ($is_highlight == true) {
+    echo 'Klicken um alle Termine anzuzeigen';
+  } else {
+    echo 'Klicken um nur Highlights anzuzeigen';
+  }
+  echo '" class="event_nav_icon" />';
+	echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
 
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
     echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="' . $filter . '">' . "\n";
