@@ -240,7 +240,7 @@ class EvTermine_Widget extends WP_Widget {
 	if (array_key_exists('filter', $args)) {
 	  $filter = $args['filter'];
 	} else {
-	  $filter = 'no';
+	  $filter = array();
 	}
 	
 	$newArgs = '';
@@ -269,26 +269,28 @@ class EvTermine_Widget extends WP_Widget {
 	  $newArgs .= '&';
     }
     
-  // Output the filter options
-  if ($is_highlight == false) {
-    $newArgs .= 'highlight=high&';
+  if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
+    // Output the filter options
+    if ($is_highlight == false) {
+      $newArgs .= 'highlight=high&';
+    }
+    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $page . '" data-filter="' . htmlentities(serialize($filter)) . '">' . "\n";
+    echo '<img src="';
+    if ($is_highlight == true) {
+      echo plugins_url('images/highlight_on.png', __FILE__);
+    } else {
+      echo plugins_url('images/highlight_off.png', __FILE__);
+    }
+    echo '" title="';
+    if ($is_highlight == true) {
+      echo 'Klicken um alle Termine anzuzeigen';
+    } else {
+      echo 'Klicken um nur Highlights anzuzeigen';
+    }
+    echo '" class="event_nav_icon" />';
+    echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
   }
-  echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
-  echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $page . '" data-filter="' . $filter . '">' . "\n";
-	echo '<img src="';
-  if ($is_highlight == true) {
-    echo plugins_url('images/highlight_on.png', __FILE__);
-  } else {
-    echo plugins_url('images/highlight_off.png', __FILE__);
-  }
-  echo '" title="';
-  if ($is_highlight == true) {
-    echo 'Klicken um alle Termine anzuzeigen';
-  } else {
-    echo 'Klicken um nur Highlights anzuzeigen';
-  }
-  echo '" class="event_nav_icon" />';
-	echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
 
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
     echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="' . $filter . '">' . "\n";
@@ -314,51 +316,56 @@ class EvTermine_Widget extends WP_Widget {
 	echo '<img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n" . "\n";
 	echo '</div>' . "\n";
   }
+  
+  private function outputEvent( $event )
+  {
+    echo '<p class="evtermine_container">' . "\n";
+    echo '<span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;&nbsp;' . "\n";
+    echo '<a class="evtermine_title" href="http://evangelische-termine.de/detail.php?ID=' . $event->ID . '" rel="#ev_' . $event->_event_ID . '">' . $this->tohtml($event->_event_TITLE) . '</a><br>' . "\n";
+    echo '<span class="evtermine_desc">';
+    /* If there is no short description */
+    $address = $event->_place_NAME . ', ' . $event->_place_STREET_NR;
+    $addrlen = strlen($address);
+    if (strlen($event->_event_SHORT_DESCRIPTION) > 0)
+    {
+      $desc = $event->_event_SHORT_DESCRIPTION;
+    } else if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
+      $desc = $event->_event_LONG_DESCRIPTION;
+    } else {
+      $desc = 'Keine weiteren Informationen.';
+    }
+    $desclen = strlen($desc);
+    $maxlen = 120;
+    if (($addrlen + $desclen) > $maxlen)
+    {
+      $desc = substr($desc, 0, $maxlen - $addrlen);
+      $desccut = strrpos($desc, ' ');
+      if ($desccut > 0)
+      {
+        $desc = substr($desc, 0, $desccut);
+      }
+      $desc .= '...';
+    }
+    echo $this->tohtml($desc) . ', &nbsp;' . $address;
+    echo '</span></p>' . "\n";
+
+    echo '<div class="simple_overlay" id="ev_' . $event->_event_ID . '">' . "\n";
+    echo '<h2>' . $this->tohtml($event->_event_TITLE) . '</h2>' . "\n";
+    echo '<h3>' . $event->DATUM . '</h3>' . "\n";
+    if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
+      echo '<p>' . $this->tohtml($event->_event_LONG_DESCRIPTION) . '</p>' . "\n";
+    } else {
+      echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
+    }
+    echo '<p>' . $address . '</p>' . "\n";
+    echo '</div>' . "\n";
+  }
 
   private function outputTermine( $xmlstr, $args ) {
     if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
       $xmlobj = new SimpleXMLElement($xmlstr);
       foreach($xmlobj->Export->Veranstaltung as $event) {
-        echo '<p class="evtermine_container">' . "\n";
-        echo '<span class="evtermine_date">'. $event->DATUM . '</span>&nbsp;&nbsp;' . "\n";
-        echo '<a class="evtermine_title" href="http://evangelische-termine.de/detail.php?ID=' . $event->ID . '" rel="#ev_' . $event->_event_ID . '">' . $this->tohtml($event->_event_TITLE) . '</a><br>' . "\n";
-        echo '<span class="evtermine_desc">';
-        /* If there is no short description */
-        $address = $event->_place_NAME . ', ' . $event->_place_STREET_NR;
-        $addrlen = strlen($address);
-        if (strlen($event->_event_SHORT_DESCRIPTION) > 0)
-        {
-          $desc = $event->_event_SHORT_DESCRIPTION;
-        } else if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
-          $desc = $event->_event_LONG_DESCRIPTION;
-        } else {
-		  $desc = 'Keine weiteren Informationen.';
-		}
-        $desclen = strlen($desc);
-        $maxlen = 120;
-        if (($addrlen + $desclen) > $maxlen)
-        {
-          $desc = substr($desc, 0, $maxlen - $addrlen);
-          $desccut = strrpos($desc, ' ');
-          if ($desccut > 0)
-          {
-            $desc = substr($desc, 0, $desccut);
-          }
-          $desc .= '...';
-        }
-        echo $this->tohtml($desc) . ', &nbsp;' . $address;
-        echo '</span></p>' . "\n";
-
-        echo '<div class="simple_overlay" id="ev_' . $event->_event_ID . '">' . "\n";
-        echo '<h2>' . $this->tohtml($event->_event_TITLE) . '</h2>' . "\n";
-        echo '<h3>' . $event->DATUM . '</h3>' . "\n";
-        if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
-          echo '<p>' . $this->tohtml($event->_event_LONG_DESCRIPTION) . '</p>' . "\n";
-        } else {
-          echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
-        }
-        echo '<p>' . $address . '</p>' . "\n";
-        echo '</div>' . "\n";
+        $this->outputEvent( $event );
       }
     } else {
       echo '<p>Keine Termine</p>\n';
@@ -366,10 +373,29 @@ class EvTermine_Widget extends WP_Widget {
 	$itemsperpage = $this->getItemsPerPage( $xmlobj->Export->meta->activeParams );
 	$this->outputNavigation( $args, $xmlobj->Export->meta->activeParams, $xmlobj->Export->meta->totalItems, $itemsperpage );
   }
+  
+  private function outputListMode( $xmlstr, $args ) {
+    if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
+      $xmlobj = new SimpleXMLElement($xmlstr);
+      $id_list = array();
+      $name_list = array();
+      foreach($xmlobj->Export->Veranstaltung as $event) {
+        if (!in_array(intval($event->_event_ID->__toString()), $id_list) && !in_array($event->_event_TITLE->__toString(), $name_list)) {
+          $this->outputEvent( $event );
+          $id_list[] = intval($event->_event_ID->__toString());
+          $name_list[] = $event->_event_TITLE->__toString();
+        }
+      }
+    }      
+  }
 
   private function doOutput($args) {
     $xmlstr = $this->getTermine($args);
-    $this->outputTermine($xmlstr, $args);
+    if (!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) {
+      $this->outputTermine($xmlstr, $args);
+    } else {
+      $this->outputListMode($xmlstr, $args);
+    }
   }
 }
 
