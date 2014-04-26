@@ -167,27 +167,25 @@ class EvTermine_Widget extends WP_Widget {
   {
     $result = array();
     $entries = preg_split('/\|/', $queryString);
-	foreach ($entries as $entry) {
-	  list($key,$value) = preg_split('/=/', $entry);
-	  $result[$key] = $value;
-	}
+	  foreach ($entries as $entry) {
+	    list($key,$value) = preg_split('/=/', $entry);
+	    $result[$key] = $value;
+	  }
 	
-	return $result;
+    return $result;
   }
   
-  private function getItemsPerPage( $queryString )
+  private function getItemsPerPage( $arg_array )
   {
-    $itemsperpage = 1;
-	$arg_array = $this->parse_xml_args( $queryString );
-	if (array_key_exists('itemsPerPage', $arg_array)) {
-	  $itemsperpage = intval($arg_array['itemsPerPage']);
-	  if ($itemsperpage == 0)
-	  {
-		$itemsperpage = 1;
-	  }
-	}
+    if (array_key_exists('itemsPerPage', $arg_array)) {
+      $itemsperpage = intval($arg_array['itemsPerPage']);
+      if ($itemsperpage == 0)
+      {
+        $itemsperpage = 1;
+      }
+    }
 	
-	return $itemsperpage;
+    return $itemsperpage;
   }
   
   private function tohtml( $str ) {
@@ -214,10 +212,9 @@ class EvTermine_Widget extends WP_Widget {
     return $str2;
   }
   
-  private function outputNavigation( $args, $queryString, $maxentries, $itemsperpage )
+  private function outputNavigation( $args, $arg_array, $maxentries, $itemsperpage )
   {
 	echo '<div class="event_navigation">' . "\n";
-    $arg_array = $this->parse_xml_args( $queryString );
 	$page = 1;
 	if (array_key_exists('pageID', $arg_array)) {
 	  $page = intval($arg_array['pageID']);
@@ -245,7 +242,7 @@ class EvTermine_Widget extends WP_Widget {
 	
 	$newArgs = '';
 	foreach ($arg_array as $key => $value) {
-	  if (strcmp($key, 'pageID') != 0 && strcmp($key, 'highlight')) {
+	  if (strcmp($key, 'pageID') != 0 && strcmp($key, 'highlight') != 0 && strcmp($key, 'eventtype') != 0) {
 	    if (strlen($newArgs) != 0)
       {
 	      $newArgs .= "&";
@@ -267,15 +264,61 @@ class EvTermine_Widget extends WP_Widget {
 	
 	if (strlen($newArgs) != 0) {
 	  $newArgs .= '&';
+  }
+  
+  $filters_avail = array(
+    'event' => '7',
+    'kultur' => '4',
+    'glaube' => '1',
+    'gruppe' => '2',
+    'sport' => '8',
+    'urlaub' => '5'
+  );
+  
+  foreach ($filters_avail as $key => $query) {
+    if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
+      $useArgs = $newArgs;
+      $filter_set = true;
+      // Output the filter options
+      if (!array_key_exists('eventtype', $arg_array) || strcmp($arg_array['eventtype'], $query) != 0) {
+        $filter_set = false;
+        $useArgs .= 'eventtype=' . $query . '&';
+      }
+      if ($is_highlight == true) {
+        $useArgs .= 'highlight=high&';
+      }
+      echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+      echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . 'pageID=' . $page . '" ';
+      echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
+      echo '<img src="';
+      if ($filter_set == true) {
+        echo plugins_url('images/' . $key . '_on.png', __FILE__);
+      } else {
+        echo plugins_url('images/' . $key . '_off.png', __FILE__);
+      }
+      echo '" title="';
+      if ($filter_set == true) {
+        echo 'Alle Kategorien anzeigen';
+      } else {
+        echo 'Nur ' . ucfirst($key) . ' anzeigen';
+      }
+      echo '" class="event_nav_icon" />';
+      echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
     }
-    
+  }
+  
   if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
+    $useArgs = $newArgs;
     // Output the filter options
     if ($is_highlight == false) {
-      $newArgs .= 'highlight=high&';
+      $useArgs .= 'highlight=high&';
+    }
+    if (array_key_exists('eventtype', $arg_array)) {
+      $useArgs .= 'eventtype=' . $arg_array['eventtype'] . '&';
     }
     echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $page . '" data-filter="' . htmlentities(serialize($filter)) . '">' . "\n";
+    echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . 'pageID=' . $page . '" ';
+    echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
     echo '<img src="';
     if ($is_highlight == true) {
       echo plugins_url('images/highlight_on.png', __FILE__);
@@ -289,30 +332,43 @@ class EvTermine_Widget extends WP_Widget {
       echo 'Klicken um nur Highlights anzuzeigen';
     }
     echo '" class="event_nav_icon" />';
-    echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
+    echo '</a><span style="padding: 0 1em;">&nbsp;</span>' . "\n";
   }
 
+  // Keep existing filters
+  if ($is_highlight == true) {
+    $newArgs .= 'highlight=high&';
+  }
+  if (array_key_exists('eventtype', $arg_array)) {
+    $newArgs .= 'eventtype=' . $arg_array['eventtype'] . '&';
+  }
+  
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" data-filter="' . $filter . '">' . "\n";
+  echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=1" ';
+  echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/gostart_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" data-filter="' . $filter . '">' . "\n";
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" ';
+  echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
 	  if ($actpage != $page)
 	  {
 	    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-       echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $actpage . '" data-filter="' . $filter . '">' . "\n";
+       echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $actpage . '" ';
+       echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	    echo $actpage . '</a>&nbsp;&nbsp;' . "\n";
 	  } else {
 	    echo $actpage . '&nbsp;&nbsp;' . "\n";
 	  }
 	}
-    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $nextpage . '" data-filter="' . $filter . '">' . "\n";
+  echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
+  echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $nextpage . '" ';
+  echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/ff_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
-	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $maxpage . '" data-filter="' . $filter . '">' . "\n";
+	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $maxpage . '" ';
+  echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/goend_icon.png', __FILE__) . '" class="event_nav_icon" /></a>' . "\n" . "\n";
 	echo '</div>' . "\n";
   }
@@ -361,40 +417,82 @@ class EvTermine_Widget extends WP_Widget {
     echo '</div>' . "\n";
   }
 
-  private function outputTermine( $xmlstr, $args ) {
-    if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
-      $xmlobj = new SimpleXMLElement($xmlstr);
-      foreach($xmlobj->Export->Veranstaltung as $event) {
-        $this->outputEvent( $event );
-      }
-    } else {
-      echo '<p>Keine Termine</p>\n';
+  private function outputTermine( $xmlobj, $arg_array, $args )
+  {
+    foreach($xmlobj->Export->Veranstaltung as $event) {
+      $this->outputEvent( $event );
     }
-	$itemsperpage = $this->getItemsPerPage( $xmlobj->Export->meta->activeParams );
-	$this->outputNavigation( $args, $xmlobj->Export->meta->activeParams, $xmlobj->Export->meta->totalItems, $itemsperpage );
+
+	  $itemsperpage = $this->getItemsPerPage( $arg_array );
+	  $this->outputNavigation( $args, $arg_array, $xmlobj->Export->meta->totalItems, $itemsperpage );
   }
   
-  private function outputListMode( $xmlstr, $args ) {
-    if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
-      $xmlobj = new SimpleXMLElement($xmlstr);
-      $id_list = array();
-      $name_list = array();
-      foreach($xmlobj->Export->Veranstaltung as $event) {
-        if (!in_array(intval($event->_event_ID->__toString()), $id_list) && !in_array($event->_event_TITLE->__toString(), $name_list)) {
-          $this->outputEvent( $event );
-          $id_list[] = intval($event->_event_ID->__toString());
-          $name_list[] = $event->_event_TITLE->__toString();
+  private function outputListMode( $xmlobj, $arg_array, $args ) {
+    $id_list = array();
+    $name_list = array();
+    foreach($xmlobj->Export->Veranstaltung as $event) {
+      if (!in_array(intval($event->_event_ID->__toString()), $id_list) && !in_array($event->_event_TITLE->__toString(), $name_list)) {
+        $this->outputEvent( $event );
+        $id_list[] = intval($event->_event_ID->__toString());
+        $name_list[] = $event->_event_TITLE->__toString();
+      }
+    }     
+  }
+  
+  private function outputFilterText($args, $filter, $text)
+  {
+    if (array_key_exists($filter, $args['filter']) && strcmp($args['filter'][$filter], 'yes') == 0) {
+      echo '&nbsp-&nbsp;' . $text;
+    }
+  }
+  
+  private function outputHeadline($args, $arg_array)
+  {
+	  if (array_key_exists('filter' , $args) &&
+      (!array_key_exists('noheadline', $args['filter']) || strcmp($args['filter']['noheadline'], 'yes') != 0)) {
+      echo '<div class="event_headline_container">' . "\n";
+	    echo '<h1 class="event_headline">' . $args['headline'];
+      if (array_key_exists('eventtype', $arg_array)) {
+        switch (intval($arg_array['eventtype'])) {
+        case 1:
+          $this->outputFilterText($args, 'glaube', 'Glaube');
+          break;
+        case 2:
+          $this->outputFilterText($args, 'gruppe', 'Gruppe');
+          break;
+        case 4:
+          $this->outputFilterText($args, 'kulter', 'Kultur');
+          break;
+        case 5:
+          $this->outputFilterText($args, 'urlaub', 'Urlaub');
+          break;
+        case 7:
+          $this->outputFilterText($args, 'event', 'Event');
+          break;
+        case 8:
+          $this->outputFilterText($args, 'sport', 'Sport');
+          break;
         }
       }
-    }      
+      echo '</h1>' . "\n";
+	    echo '</div>' . "\n";
+	    echo '<div class="partseperator"></div>' . "\n";
+	  }
   }
 
   private function doOutput($args) {
     $xmlstr = $this->getTermine($args);
-    if (!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) {
-      $this->outputTermine($xmlstr, $args);
-    } else {
-      $this->outputListMode($xmlstr, $args);
+    if (function_exists('simplexml_load_string') && strlen($xmlstr) != 0) {
+      $xmlobj = new SimpleXMLElement($xmlstr);
+      $arg_array = $this->parse_xml_args( $xmlobj->Export->meta->activeParams );
+      $this->outputHeadline($args, $arg_array);
+      echo '<div class="event_list">'. "\n";
+      if (!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) {
+        $this->outputTermine($xmlobj, $arg_array, $args);
+      } else {
+        $this->outputListMode($xmlobj, $arg_array, $args);
+      }
+      echo '</div>' . "\n";
     }
   }
 }
