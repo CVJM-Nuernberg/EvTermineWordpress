@@ -115,6 +115,38 @@ class EvTermine_Widget extends WP_Widget {
 
     return $instance;
   }
+  
+  private function countFilter( $args )
+  {
+    if (array_key_exists('filter', $args)) {
+      $filter = $args['filter'];
+    } else {
+      $filter = array();
+    }
+  
+    $filters_avail = array(
+      'event',
+      'kultur',
+      'glaube',
+      'gruppe',
+      'sport',
+      'urlaub'
+    );
+
+    $count = 0;
+    
+    if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
+      $count++;
+    }
+    foreach ($filters_avail as $key)
+    {
+      if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
+        $count++;
+      }
+    }
+    
+    return $count;
+  }
 
   /**
    * Get the XML string from the Evangelische Termine webpage
@@ -359,7 +391,7 @@ class EvTermine_Widget extends WP_Widget {
   private function outputFilterText($args, $filter, $text)
   {
     if (array_key_exists($filter, $args['filter']) && strcmp($args['filter'][$filter], 'yes') == 0) {
-      echo $text;
+      echo '<a>' . $text . '</a>';
     }
   }
   
@@ -464,38 +496,41 @@ class EvTermine_Widget extends WP_Widget {
       (!array_key_exists('noheadline', $args['filter']) || strcmp($args['filter']['noheadline'], 'yes') != 0)) {
       echo '<div class="event_headline_container">' . "\n";
 	    echo '<h1 class="event_headline">' . $args['headline'];
-      if (array_key_exists('highlight', $arg_array)) {
-        echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Highlight</a>' . "\n";
-         $this->outputSelect($args, $arg_array);
-         echo "\n" . '</div>'. "\n";       
-      } else if (array_key_exists('eventtype', $arg_array)) {
-        echo '&nbsp;-&nbsp;<span class="event_filter_text">';
-        switch (intval($arg_array['eventtype'])) {
-        case 1:
-          $this->outputFilterText($args, 'glaube', 'Glaube');
-          break;
-        case 2:
-          $this->outputFilterText($args, 'gruppe', 'Gruppe');
-          break;
-        case 4:
-          $this->outputFilterText($args, 'kultur', 'Kultur');
-          break;
-        case 5:
-          $this->outputFilterText($args, 'urlaub', 'Urlaub');
-          break;
-        case 7:
-          $this->outputFilterText($args, 'event', 'Event');
-          break;
-        case 8:
-          $this->outputFilterText($args, 'sport', 'Sport');
-          break;
+      if ((!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) &&
+        $this->countFilter( $args ) > 1) {
+        if (array_key_exists('highlight', $arg_array)) {
+          echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Highlight</a>' . "\n";
+           $this->outputSelect($args, $arg_array);
+           echo "\n" . '</div>'. "\n";       
+        } else if (array_key_exists('eventtype', $arg_array)) {
+          echo '&nbsp;-&nbsp;<span class="event_filter_text">';
+          switch (intval($arg_array['eventtype'])) {
+          case 1:
+            $this->outputFilterText($args, 'glaube', 'Glaube');
+            break;
+          case 2:
+            $this->outputFilterText($args, 'gruppe', 'Gruppe');
+            break;
+          case 4:
+            $this->outputFilterText($args, 'kultur', 'Kultur');
+            break;
+          case 5:
+            $this->outputFilterText($args, 'urlaub', 'Urlaub');
+            break;
+          case 7:
+            $this->outputFilterText($args, 'event', 'Event');
+            break;
+          case 8:
+            $this->outputFilterText($args, 'sport', 'Sport');
+            break;
+          }
+          $this->outputSelect($args, $arg_array);
+          echo '</span>' . "\n";
+        } else {
+          echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Alle Termine</a>' . "\n";
+           $this->outputSelect($args, $arg_array);
+           echo "\n" . '</div>'. "\n";  
         }
-        $this->outputSelect($args, $arg_array);
-        echo '</span>' . "\n";
-      } else {
-        echo '&nbsp;-&nbsp;<div class="event_filter_text">Alle Termine' . "\n";
-         $this->outputSelect($args, $arg_array);
-         echo "\n" . '</div>'. "\n";  
       }
       echo '</h1>' . "\n";
 	    echo '</div>' . "\n";
