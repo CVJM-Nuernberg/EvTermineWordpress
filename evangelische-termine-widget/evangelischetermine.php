@@ -223,26 +223,20 @@ class EvTermine_Widget extends WP_Widget {
 	  }
 	}
 	$maxpage = ceil($maxentries / $itemsperpage);
-  
-  if (array_key_exists('highlight', $arg_array)) {
-    $is_highlight = true;
-  } else {
-    $is_highlight = false;
+    
+  if (array_key_exists('vid', $arg_array)) {
+    $vid = $arg_array['vid'];
   }
-	
-	if (array_key_exists('vid', $arg_array)) {
-	  $vid = $arg_array['vid'];
-	}
-	
-	if (array_key_exists('filter', $args)) {
-	  $filter = $args['filter'];
-	} else {
-	  $filter = array();
-	}
-	
+    
+  if (array_key_exists('filter', $args)) {
+    $filter = $args['filter'];
+  } else {
+    $filter = array();
+  }
+  
 	$newArgs = '';
 	foreach ($arg_array as $key => $value) {
-	  if (strcmp($key, 'pageID') != 0 && strcmp($key, 'highlight') != 0 && strcmp($key, 'eventtype') != 0) {
+	  if (strcmp($key, 'pageID') != 0) {
 	    if (strlen($newArgs) != 0)
       {
 	      $newArgs .= "&";
@@ -264,83 +258,6 @@ class EvTermine_Widget extends WP_Widget {
 	
 	if (strlen($newArgs) != 0) {
 	  $newArgs .= '&';
-  }
-  
-  $filters_avail = array(
-    'event' => '7',
-    'kultur' => '4',
-    'glaube' => '1',
-    'gruppe' => '2',
-    'sport' => '8',
-    'urlaub' => '5'
-  );
-  
-  foreach ($filters_avail as $key => $query) {
-    if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
-      $useArgs = $newArgs;
-      $filter_set = true;
-      // Output the filter options
-      if (!array_key_exists('eventtype', $arg_array) || strcmp($arg_array['eventtype'], $query) != 0) {
-        $filter_set = false;
-        $useArgs .= 'eventtype=' . $query . '&';
-      }
-      if ($is_highlight == true) {
-        $useArgs .= 'highlight=high&';
-      }
-      echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
-      echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . 'pageID=' . $page . '" ';
-      echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
-      echo '<img src="';
-      if ($filter_set == true) {
-        echo plugins_url('images/' . $key . '_on.png', __FILE__);
-      } else {
-        echo plugins_url('images/' . $key . '_off.png', __FILE__);
-      }
-      echo '" title="';
-      if ($filter_set == true) {
-        echo 'Alle Kategorien anzeigen';
-      } else {
-        echo 'Nur ' . ucfirst($key) . ' anzeigen';
-      }
-      echo '" class="event_nav_icon" />';
-      echo '</a>&nbsp;&nbsp;&nbsp;' . "\n";
-    }
-  }
-  
-  if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
-    $useArgs = $newArgs;
-    // Output the filter options
-    if ($is_highlight == false) {
-      $useArgs .= 'highlight=high&';
-    }
-    if (array_key_exists('eventtype', $arg_array)) {
-      $useArgs .= 'eventtype=' . $arg_array['eventtype'] . '&';
-    }
-    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
-    echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . 'pageID=' . $page . '" ';
-    echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
-    echo '<img src="';
-    if ($is_highlight == true) {
-      echo plugins_url('images/highlight_on.png', __FILE__);
-    } else {
-      echo plugins_url('images/highlight_off.png', __FILE__);
-    }
-    echo '" title="';
-    if ($is_highlight == true) {
-      echo 'Klicken um alle Termine anzuzeigen';
-    } else {
-      echo 'Klicken um nur Highlights anzuzeigen';
-    }
-    echo '" class="event_nav_icon" />';
-    echo '</a><span style="padding: 0 1em;">&nbsp;</span>' . "\n";
-  }
-
-  // Keep existing filters
-  if ($is_highlight == true) {
-    $newArgs .= 'highlight=high&';
-  }
-  if (array_key_exists('eventtype', $arg_array)) {
-    $newArgs .= 'eventtype=' . $arg_array['eventtype'] . '&';
   }
   
 	echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
@@ -442,8 +359,103 @@ class EvTermine_Widget extends WP_Widget {
   private function outputFilterText($args, $filter, $text)
   {
     if (array_key_exists($filter, $args['filter']) && strcmp($args['filter'][$filter], 'yes') == 0) {
-      echo '&nbsp-&nbsp;' . $text;
+      echo $text;
     }
+  }
+  
+  private function outputSelect($args, $arg_array)
+  {
+    $itemsperpage = $this->getItemsPerPage( $arg_array );
+    
+    $page = 1;
+    if (array_key_exists('pageID', $arg_array)) {
+      $page = intval($arg_array['pageID']);
+      if ($page == 0) {
+        $page = 1;
+      }
+    }
+
+    if (array_key_exists('highlight', $arg_array)) {
+      $is_highlight = true;
+    } else {
+      $is_highlight = false;
+    }
+    
+    if (array_key_exists('vid', $arg_array)) {
+      $vid = $arg_array['vid'];
+    }
+    
+    if (array_key_exists('filter', $args)) {
+      $filter = $args['filter'];
+    } else {
+      $filter = array();
+    }
+    
+    $newArgs = '';
+    foreach ($arg_array as $key => $value) {
+      if (strcmp($key, 'highlight') != 0 && strcmp($key, 'eventtype') != 0) {
+        if (strlen($newArgs) != 0)
+        {
+          $newArgs .= "&";
+        }
+        $newArgs .= $key . "=" . $value;
+      }
+    }
+    
+    if (strlen($newArgs) != 0) {
+	    $newArgs .= '&';
+    }
+    
+    $filters_avail = array(
+      'event' => '7',
+      'kultur' => '4',
+      'glaube' => '1',
+      'gruppe' => '2',
+      'sport' => '8',
+      'urlaub' => '5'
+    );
+    
+    echo '<img src="' . plugins_url('images/arrow_down.png', __FILE__) . '" class="event_select_arrow" />' ."\n";
+    echo '<ul class="event_category_select">' . "\n";
+    
+    if ((array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) || count($filter) > 0) {
+      echo '<li><a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+      echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . '" ';
+      echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">';
+      echo 'Alle Termine';
+      echo '</a></li>' . "\n";
+    }
+
+    if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
+      $useArgs = $newArgs;
+      // Output the filter options
+      if ($is_highlight == false) {
+        $useArgs .= 'highlight=high&';
+      }
+      echo '<li><a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+      echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . '" ';
+      echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">';
+      echo 'Highlight';
+      echo '</a></li>' . "\n";
+    }
+    
+    foreach ($filters_avail as $key => $query) {
+      if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
+        $useArgs = $newArgs;
+        $filter_set = true;
+        // Output the filter options
+        if (!array_key_exists('eventtype', $arg_array) || strcmp($arg_array['eventtype'], $query) != 0) {
+          $filter_set = false;
+          $useArgs .= 'eventtype=' . $query . '&';
+        }
+        echo '<li><a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
+        echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . '" ';
+        echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">';
+        echo ucfirst($key);
+        echo '</a></li>' . "\n";
+      }
+    }
+    echo '</ul>'. "\n";
   }
   
   private function outputHeadline($args, $arg_array)
@@ -452,7 +464,12 @@ class EvTermine_Widget extends WP_Widget {
       (!array_key_exists('noheadline', $args['filter']) || strcmp($args['filter']['noheadline'], 'yes') != 0)) {
       echo '<div class="event_headline_container">' . "\n";
 	    echo '<h1 class="event_headline">' . $args['headline'];
-      if (array_key_exists('eventtype', $arg_array)) {
+      if (array_key_exists('highlight', $arg_array)) {
+        echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Highlight</a>' . "\n";
+         $this->outputSelect($args, $arg_array);
+         echo "\n" . '</div>'. "\n";       
+      } else if (array_key_exists('eventtype', $arg_array)) {
+        echo '&nbsp;-&nbsp;<span class="event_filter_text">';
         switch (intval($arg_array['eventtype'])) {
         case 1:
           $this->outputFilterText($args, 'glaube', 'Glaube');
@@ -461,7 +478,7 @@ class EvTermine_Widget extends WP_Widget {
           $this->outputFilterText($args, 'gruppe', 'Gruppe');
           break;
         case 4:
-          $this->outputFilterText($args, 'kulter', 'Kultur');
+          $this->outputFilterText($args, 'kultur', 'Kultur');
           break;
         case 5:
           $this->outputFilterText($args, 'urlaub', 'Urlaub');
@@ -473,6 +490,12 @@ class EvTermine_Widget extends WP_Widget {
           $this->outputFilterText($args, 'sport', 'Sport');
           break;
         }
+        $this->outputSelect($args, $arg_array);
+        echo '</span>' . "\n";
+      } else {
+        echo '&nbsp;-&nbsp;<div class="event_filter_text">Alle Termine' . "\n";
+         $this->outputSelect($args, $arg_array);
+         echo "\n" . '</div>'. "\n";  
       }
       echo '</h1>' . "\n";
 	    echo '</div>' . "\n";
