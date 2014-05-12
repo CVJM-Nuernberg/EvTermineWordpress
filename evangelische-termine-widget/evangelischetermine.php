@@ -362,7 +362,8 @@ class EvTermine_Widget extends WP_Widget {
     } else {
       echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
     }
-    echo '<p>' . $address . '</p>' . "\n";
+    echo '<p class="event_overlay_address"><span style="font-weight:bold;">Ort:</span> ' . $address . '</p>' . "\n";
+    echo '<p class="event_overlay_kontakt"><span style="font-weight:bold;">Kontakt:</span> ' . $this->tohtml($event->_person_NAME) . ', ' . $this->tohtml($event->_person_CONTACT) . '</p>' . "\n";
     echo '</div>' . "\n";
   }
 
@@ -440,9 +441,9 @@ class EvTermine_Widget extends WP_Widget {
     
     $filters_avail = array(
       'event' => '7',
-      'kultur' => '4',
       'glaube' => '1',
       'gruppe' => '2',
+      'kultur' => '4',
       'sport' => '8',
       'urlaub' => '5'
     );
