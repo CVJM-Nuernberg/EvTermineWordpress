@@ -47,7 +47,7 @@ class EvTermine_Widget extends WP_Widget {
     'gottesdienst' => array('name' => 'Gottesdienste', 'index' => 1),
     'glaube' => array('name' => 'Glaube', 'index' => 10),
     'kultur' => array('name' => 'Kultur &amp; Musik', 'index' => 4),
-    'semimar' => array('name' => 'Seminare &amp; Vortr&auml;ge', 'index' => 3),
+    'seminar' => array('name' => 'Seminare &amp; Vortr&auml;ge', 'index' => 3),
     'sport' => array('name' => 'Sport', 'index' => 8),
     'gruppe' => array('name' => 'Gruppen', 'index' => 2),
   );
