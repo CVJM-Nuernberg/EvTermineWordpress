@@ -41,6 +41,16 @@ This plugin requires WordPress >= 2.8 and tested with PHP Interpreter >= 5.2.10
 */
 
 class EvTermine_Widget extends WP_Widget {
+  private $filters_available = array (
+    'event' => array('name' => 'Event', 'index' => 7),
+    'urlaub' => array('name' => 'Freizeiten', 'index' => 5),
+    'gottesdienst' => array('name' => 'Gottesdienste', 'index' => 1),
+    'glaube' => array('name' => 'Glaube', 'index' => 10),
+    'kultur' => array('name' => 'Kultur &amp; Musik', 'index' => 4),
+    'semimar' => array('name' => 'Seminare &amp; Vortr&auml;ge', 'index' => 3),
+    'sport' => array('name' => 'Sport', 'index' => 8),
+    'gruppe' => array('name' => 'Gruppen', 'index' => 2),
+  );
   public function __construct() {
     $widget_ops = array(
       'classname' => 'widget_evtermine',
@@ -123,22 +133,13 @@ class EvTermine_Widget extends WP_Widget {
     } else {
       $filter = array();
     }
-  
-    $filters_avail = array(
-      'event',
-      'kultur',
-      'glaube',
-      'gruppe',
-      'sport',
-      'urlaub'
-    );
 
     $count = 0;
     
     if (array_key_exists('highlight', $filter) && strcmp($filter['highlight'], 'yes') == 0) {
       $count++;
     }
-    foreach ($filters_avail as $key)
+    foreach ($this->filters_available as $key => $value)
     {
       if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
         $count++;
@@ -363,7 +364,14 @@ class EvTermine_Widget extends WP_Widget {
       echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
     }
     echo '<p class="event_overlay_address"><span style="font-weight:bold;">Ort:</span> ' . $address . '</p>' . "\n";
-    echo '<p class="event_overlay_kontakt"><span style="font-weight:bold;">Kontakt:</span> ' . $this->tohtml($event->_person_NAME) . ', ' . $this->tohtml($event->_person_CONTACT) . '</p>' . "\n";
+    echo '<p class="event_overlay_kontakt"><span style="font-weight:bold;">Kontakt:</span> ' . $this->tohtml($event->_person_NAME);
+    if (strlen($event->_person_CONTACT) > 0) {
+      echo '; ' . $this->tohtml($event->_person_CONTACT);
+    }
+    if (strlen($event->_person_EMAIL) > 0) {
+      echo '; <a href="mailto: ' . $this->tohtml($event->_person_EMAIL) . '">' . $this->tohtml($event->_person_EMAIL) . '</a>';
+    }
+    echo '</p>' . "\n";
     echo '</div>' . "\n";
   }
 
@@ -439,15 +447,6 @@ class EvTermine_Widget extends WP_Widget {
 	    $newArgs .= '&';
     }
     
-    $filters_avail = array(
-      'event' => '7',
-      'glaube' => '1',
-      'gruppe' => '2',
-      'kultur' => '4',
-      'sport' => '8',
-      'urlaub' => '5'
-    );
-    
     echo '<img src="' . plugins_url('images/arrow_down.png', __FILE__) . '" class="event_select_arrow" />' ."\n";
     echo '<ul class="event_category_select">' . "\n";
     
@@ -472,19 +471,19 @@ class EvTermine_Widget extends WP_Widget {
       echo '</a></li>' . "\n";
     }
     
-    foreach ($filters_avail as $key => $query) {
+    foreach ($this->filters_available as $key => $query) {
       if (array_key_exists($key, $filter) && strcmp($filter[$key], 'yes') == 0) {
         $useArgs = $newArgs;
         $filter_set = true;
         // Output the filter options
-        if (!array_key_exists('eventtype', $arg_array) || strcmp($arg_array['eventtype'], $query) != 0) {
+        if (!array_key_exists('eventtype', $arg_array) || strcmp($arg_array['eventtype'], $query['index']) != 0) {
           $filter_set = false;
-          $useArgs .= 'eventtype=' . $query . '&';
+          $useArgs .= 'eventtype=' . $query['index'] . '&';
         }
         echo '<li><a href="javascript:reload_evtermine();" class="callajax" data-vid="' . $vid . '" ';
         echo 'data-count="' . $itemsperpage . '" data-query="' . $useArgs . '" ';
         echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">';
-        echo ucfirst($key);
+        echo $query['name'];
         echo '</a></li>' . "\n";
       }
     }
@@ -505,25 +504,11 @@ class EvTermine_Widget extends WP_Widget {
            echo "\n" . '</div>'. "\n";       
         } else if (array_key_exists('eventtype', $arg_array)) {
           echo '&nbsp;-&nbsp;<span class="event_filter_text">';
-          switch (intval($arg_array['eventtype'])) {
-          case 1:
-            $this->outputFilterText($args, 'glaube', 'Glaube');
-            break;
-          case 2:
-            $this->outputFilterText($args, 'gruppe', 'Gruppe');
-            break;
-          case 4:
-            $this->outputFilterText($args, 'kultur', 'Kultur');
-            break;
-          case 5:
-            $this->outputFilterText($args, 'urlaub', 'Urlaub');
-            break;
-          case 7:
-            $this->outputFilterText($args, 'event', 'Event');
-            break;
-          case 8:
-            $this->outputFilterText($args, 'sport', 'Sport');
-            break;
+          foreach ($this->filters_available as $key => $value) {
+            if (intval($arg_array['eventtype']) == $value['index'])
+            {
+              $this->outputFilterText($args, $key, $value['name']);
+            }
           }
           $this->outputSelect($args, $arg_array);
           echo '</span>' . "\n";
