@@ -363,6 +363,9 @@ class EvTermine_Widget extends WP_Widget {
     } else {
       echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
     }
+    if (strlen($event->_event_LINK) > 0) {
+      echo '<p><a href="' . $event->_event_LINK . '">Hier klicken f&uuml;r Informationen</a></p>' . "\n";
+    }
     echo '<p class="event_overlay_address"><span style="font-weight:bold;">Ort:</span> ' . $address . '</p>' . "\n";
     echo '<p class="event_overlay_kontakt"><span style="font-weight:bold;">Kontakt:</span> ' . $this->tohtml($event->_person_NAME);
     if (strlen($event->_person_CONTACT) > 0) {
