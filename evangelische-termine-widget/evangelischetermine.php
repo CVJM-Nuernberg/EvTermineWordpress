@@ -356,6 +356,10 @@ class EvTermine_Widget extends WP_Widget {
     echo '</span></p>' . "\n";
 
     echo '<div class="simple_overlay" id="ev_' . $event->_event_ID . '">' . "\n";
+    if (strlen($event->_event_IMAGE) > 0)
+    {
+      echo '<img src="' . $event->_event_IMAGE . '" class="event_overlay_image" />' . "\n";
+    }
     echo '<h2>' . $this->tohtml($event->_event_TITLE) . '</h2>' . "\n";
     echo '<h3>' . $event->DATUM . '</h3>' . "\n";
     if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
@@ -364,7 +368,7 @@ class EvTermine_Widget extends WP_Widget {
       echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
     }
     if (strlen($event->_event_LINK) > 0) {
-      echo '<p><a href="' . $event->_event_LINK . '">Hier klicken f&uuml;r Informationen</a></p>' . "\n";
+      echo '<p class="event_overlay_link"><a href="' . $event->_event_LINK . '">Hier klicken f&uuml;r weitere Informationen</a></p>' . "\n";
     }
     echo '<p class="event_overlay_address"><span style="font-weight:bold;">Ort:</span> ' . $address . '</p>' . "\n";
     echo '<p class="event_overlay_kontakt"><span style="font-weight:bold;">Kontakt:</span> ' . $this->tohtml($event->_person_NAME);
