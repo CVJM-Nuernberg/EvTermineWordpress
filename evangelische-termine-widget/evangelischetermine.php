@@ -363,6 +363,10 @@ class EvTermine_Widget extends WP_Widget {
     echo '<h2>' . $this->tohtml($event->_event_TITLE) . '</h2>' . "\n";
     echo '<h3>' . $event->DATUM . '</h3>' . "\n";
     if (strlen($event->_event_LONG_DESCRIPTION) > 0) {
+      if (strlen($event->_event_SHORT_DESCRIPTION) > 0)
+      {
+        echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
+      }
       echo '<p>' . $this->tohtml($event->_event_LONG_DESCRIPTION) . '</p>' . "\n";
     } else {
       echo '<p>' . $this->tohtml($event->_event_SHORT_DESCRIPTION) . '</p>' . "\n";
