@@ -51,6 +51,9 @@ class EvTermine_Widget extends WP_Widget {
     'sport' => array('name' => 'Sport', 'index' => 8),
     'gruppe' => array('name' => 'Gruppen', 'index' => 2),
   );
+  private $used_query_args = array (
+    'vid', 'eventtype', 'highlight', 'people', 'itemsPerPage', 'pageID'
+  );
   public function __construct() {
     $widget_ops = array(
       'classname' => 'widget_evtermine',
@@ -202,7 +205,9 @@ class EvTermine_Widget extends WP_Widget {
     $entries = preg_split('/\|/', $queryString);
 	  foreach ($entries as $entry) {
 	    list($key,$value) = preg_split('/=/', $entry);
-	    $result[$key] = $value;
+      if (!is_null($value) && strlen($value) != 0 && in_array($key, $this->used_query_args)) {
+	      $result[$key] = $value;
+      }
 	  }
 	
     return $result;
