@@ -52,7 +52,7 @@ class EvTermine_Widget extends WP_Widget {
     'gruppe' => array('name' => 'Gruppen', 'index' => 2),
   );
   private $used_query_args = array (
-    'vid', 'eventtype', 'highlight', 'people', 'itemsPerPage', 'pageID'
+    'vid', 'ipm', 'eventtype', 'highlight', 'people', 'itemsPerPage', 'pageID'
   );
   public function __construct() {
     $widget_ops = array(
@@ -306,7 +306,7 @@ class EvTermine_Widget extends WP_Widget {
 	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" ';
   echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
-	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
+	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage <= $nextpage; $actpage++) {
 	  if ($actpage != $page)
 	  {
 	    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
