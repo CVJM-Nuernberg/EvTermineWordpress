@@ -432,7 +432,7 @@ class EvTermine_Widget extends WP_Widget {
       }
     }
 
-    if (array_key_exists('highlight', $arg_array)) {
+    if (array_key_exists('highlight', $arg_array) && strcmp($arg_array['highlight'], 'high') == 0) {
       $is_highlight = true;
     } else {
       $is_highlight = false;
@@ -514,7 +514,7 @@ class EvTermine_Widget extends WP_Widget {
 	    echo '<h1 class="event_headline">' . $args['headline'];
       if ((!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) &&
         $this->countFilter( $args ) > 1) {
-        if (array_key_exists('highlight', $arg_array)) {
+        if (array_key_exists('highlight', $arg_array) && strcmp($arg_array['highlight'], 'high') == 0) {
           echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Highlight</a>' . "\n";
            $this->outputSelect($args, $arg_array);
            echo "\n" . '</div>'. "\n";       
