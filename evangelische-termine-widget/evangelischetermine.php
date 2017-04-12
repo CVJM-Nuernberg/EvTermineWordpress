@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Evangelische Termine
+Plugin Name: Evangelische Termine (CVJM Nürnberg Deep Integration)
 Plugin URI: http://www.cvjm-nuernberg.de/
 Description: Dieses Plugin erstellt ein Sidebar-Widget, in welchem man Termine von Evangelische Termine anzeigen lassen kann
 Author: Oliver Weber
-Version: 0.1
+Version: 0.2
 Author URI: http://www.cvjm-nuernberg.de
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
