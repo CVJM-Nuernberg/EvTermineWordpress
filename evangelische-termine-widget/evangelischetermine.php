@@ -51,6 +51,9 @@ class EvTermine_Widget extends WP_Widget {
     'sport' => array('name' => 'Sport', 'index' => 8),
     'gruppe' => array('name' => 'Gruppen', 'index' => 2),
   );
+  private $used_query_args = array (
+    'vid', 'ipm', 'eventtype', 'highlight', 'people', 'itemsPerPage', 'pageID'
+  );
   public function __construct() {
     $widget_ops = array(
       'classname' => 'widget_evtermine',
@@ -202,7 +205,9 @@ class EvTermine_Widget extends WP_Widget {
     $entries = preg_split('/\|/', $queryString);
 	  foreach ($entries as $entry) {
 	    list($key,$value) = preg_split('/=/', $entry);
-	    $result[$key] = $value;
+      if (!is_null($value) && strlen($value) != 0 && in_array($key, $this->used_query_args)) {
+	      $result[$key] = $value;
+      }
 	  }
 	
     return $result;
@@ -301,7 +306,7 @@ class EvTermine_Widget extends WP_Widget {
 	echo 'data-count="' . $itemsperpage . '" data-query="' . $newArgs . 'pageID=' . $prevpage . '" ';
   echo 'data-filter="' . htmlentities(serialize($filter)) . '" data-headline="' . $args['headline'] . '">' . "\n";
 	echo '<img src="' . plugins_url('images/rw_icon.png', __FILE__) . '" class="event_nav_icon" /></a>&nbsp;&nbsp;' . "\n";
-	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage < $nextpage; $actpage++) {
+	for ($actpage = ($prevpage == 1) ? $prevpage : ($prevpage + 1); $actpage <= $nextpage; $actpage++) {
 	  if ($actpage != $page)
 	  {
 	    echo '<a href="javascript:reload_evtermine();" class="callajax" data-vid="'. $vid . '" ';
@@ -427,7 +432,7 @@ class EvTermine_Widget extends WP_Widget {
       }
     }
 
-    if (array_key_exists('highlight', $arg_array)) {
+    if (array_key_exists('highlight', $arg_array) && strcmp($arg_array['highlight'], 'high') == 0) {
       $is_highlight = true;
     } else {
       $is_highlight = false;
@@ -509,7 +514,7 @@ class EvTermine_Widget extends WP_Widget {
 	    echo '<h1 class="event_headline">' . $args['headline'];
       if ((!array_key_exists('event_list_mode', $args) || $args['event_list_mode'] == false) &&
         $this->countFilter( $args ) > 1) {
-        if (array_key_exists('highlight', $arg_array)) {
+        if (array_key_exists('highlight', $arg_array) && strcmp($arg_array['highlight'], 'high') == 0) {
           echo '&nbsp;-&nbsp;<div class="event_filter_text"><a>Highlight</a>' . "\n";
            $this->outputSelect($args, $arg_array);
            echo "\n" . '</div>'. "\n";       
