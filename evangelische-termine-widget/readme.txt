@@ -1,4 +1,4 @@
-=== Evangelische Termine ===
+=== Evangelische Termine (CVJM Nürnberg Deep Integration) ===
 Contributors: oeli
 Donate link: http://www.cvjm-nuernberg.de/
 Tags: CVJM, Termine, Events
@@ -28,4 +28,4 @@ TODO
 
 == Changelog ==
 
-0.1 First version fpr the CVJM website
+0.1 First version for the CVJM website
